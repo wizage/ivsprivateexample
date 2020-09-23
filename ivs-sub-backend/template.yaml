@@ -1,0 +1,181 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  ivs-sub-backend
+  
+Globals:
+  Function:
+    Timeout: 3
+
+Parameters:
+  SecretArn:
+    Type: String
+    Description: Arn for your secret
+    Default: "*"
+
+Resources:
+  IVSBackend:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+  SubscriptionTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: subTracker
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        -
+          AttributeName: "user_id"
+          AttributeType: "S"
+        -
+          AttributeName: "channel_id"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "user_id"
+          KeyType: "HASH"
+        -
+          AttributeName: "channel_id"
+          KeyType: "RANGE"
+  IVSRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        -
+          PolicyName: !Sub "ivs-listChannel-policy"
+          PolicyDocument:
+            Statement:
+               -
+                Effect: Allow
+                Action:
+                  - ivs:*
+                Resource: "*"
+               -
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:DescribeLogStreams
+                  - logs:PutLogEvents
+                Resource:
+                  - arn:aws:logs:*:*:*
+  ListChannels:
+    Type: AWS::Serverless::Function  
+    Properties:
+      CodeUri: listChannels/
+      Handler: index.lambdaHandler
+      Runtime: nodejs12.x
+      Role: !GetAtt IVSRole.Arn
+      Events:
+        APICall:
+          Type: Api
+          Properties:
+            Path: /listChannels
+            Method: get
+            RestApiId: !Ref IVSBackend
+  SubscribeFunction:
+    Type: AWS::Serverless::Function  
+    Properties:
+      CodeUri: subscribe/
+      Handler: index.lambdaHandler
+      Runtime: nodejs12.x
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName:
+              !Ref SubscriptionTable
+      Environment:
+        Variables:
+          DYNAMODB_TABLE:
+            Ref: SubscriptionTable
+      Events:
+        APICall:
+          Type: Api
+          Properties:
+            Path: /subscribe
+            Method: post
+            RestApiId: !Ref IVSBackend
+  UnsubscribeFunction:
+    Type: AWS::Serverless::Function  
+    Properties:
+      CodeUri: unsubscribe/
+      Handler: index.lambdaHandler
+      Runtime: nodejs12.x
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName:
+              !Ref SubscriptionTable
+      Environment:
+        Variables:
+          DYNAMODB_TABLE:
+            Ref: SubscriptionTable
+      Events:
+        APICall:
+          Type: Api
+          Policies:
+            - DynamoDBWritePolicy:
+                TableName:
+                  !Ref SubscriptionTable
+          Properties:
+            Path: /unsubscribe
+            Method: post
+            RestApiId: !Ref IVSBackend
+  TokenGenerator:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: token/
+      Handler: index.lambdaHandler
+      Runtime: nodejs12.x
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName:
+              !Ref SubscriptionTable
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action:
+                - ivs:*
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:DescribeLogStreams
+                - logs:PutLogEvents
+              Resource:
+                - arn:aws:logs:*:*:*
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn:
+              !Ref SecretArn
+      Environment:
+        Variables:
+          DYNAMODB_TABLE:
+            Ref: SubscriptionTable
+          SECRET_ARN:
+            Ref: SecretArn
+          REGION:
+            Ref: "AWS::Region"
+          ACCOUNTID:
+            Ref: "AWS::AccountId"
+      Events:
+        APICall:
+          Type: Api 
+          Properties:
+            Path: /token
+            Method: get
+            RestApiId: !Ref IVSBackend
+
+Outputs:
+   IVSBackendApi:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${IVSBackend}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+

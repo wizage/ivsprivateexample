@@ -1,0 +1,11 @@
+{
+  "name": "subscribeuser",
+  "version": "1.0.0",
+  "description": "Subscribe a user to a channel",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "wizages",
+  "license": "ISC"
+}

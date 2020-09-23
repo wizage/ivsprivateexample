@@ -1,8 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import App from './App';
+import App from './components/App';
 import * as serviceWorker from './serviceWorker';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import API from '@aws-amplify/api';
+API.configure( {
+  endpoints: [ 
+    {
+      name:'SubscriptionEndpoint',
+      endpoint:'https://og8s6mvlfb.execute-api.us-west-2.amazonaws.com/Prod/',
+    }
+  ]
+});
 
 ReactDOM.render(
   <React.StrictMode>
