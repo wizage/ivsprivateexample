@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import API from '@aws-amplify/api';
 import {CardDeck, Card, Button} from 'react-bootstrap';
 import VideoPopover from '../VideoPopover';
+import SubscribePopover from '../SubscribePopover';
 
 
 class GridView extends Component {
@@ -54,13 +55,20 @@ class GridView extends Component {
       console.log(response);
     })
     .catch(error => {
+      console.log("Show subscribe button");
       this.setState({
-        displaySubscribe: true,
+        displayingSubscribe: true,
         choosenItem: item,
       });
       console.log(error.response);
     });
     
+  }
+
+  hideSubscribe = () => {
+    this.setState({
+      displayingSubscribe: false,
+    });
   }
 
   hideStream = () => {
@@ -70,7 +78,7 @@ class GridView extends Component {
   }
 
   render() {
-    const { items, choosenItem, displayingStream } = this.state;
+    const { items, choosenItem, displayingStream, displayingSubscribe } = this.state;
     const itemHTML = items.map((item) => (
         <Card style={{ width: '18rem'}}>
             <Card.Body>
@@ -88,6 +96,11 @@ class GridView extends Component {
             choosenItem={choosenItem}
             displayingStream={displayingStream}
             hideStream={this.hideStream}
+          />
+          <SubscribePopover
+            choosenItem={choosenItem}
+            displayingSubscribe={displayingSubscribe}
+            hideSubscribe={this.hideSubscribe}
           />
           <CardDeck>
             {itemHTML}

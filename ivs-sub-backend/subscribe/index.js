@@ -3,12 +3,26 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 let response;
 
 exports.lambdaHandler = async (event, context) => {
+    if (event.httpMethod === 'OPTIONS') {
+        const optionsResponse = {
+            'statusCode': 200,
+            'headers': {
+                'Access-Control-Allow-Origin':'*',
+                'Access-Control-Allow-Methods':'OPTIONS,POST',
+                'Access-Control-Allow-Headers':'*',
+            },
+            'body': JSON.stringify({ statusCode: 200}, null, 2),
+        };
+        return optionsResponse;
+    }
     
     // CHECK PAYMENTS OR VALIDATE PAYMENT BEFORE SUBSCRIBE
-    if ( event.queryStringParameters 
-        && event.queryStringParameters.userId 
-        && event.queryStringParameters.channelId ) {
-        const {userId, channelId} = event.queryStringParameters;
+    const parameters = JSON.parse(event.body);
+    console.log(parameters, event.body);
+    if ( parameters 
+        && parameters.userId 
+        && parameters.channelId ) {
+        const {userId, channelId} = parameters;
         var params = {
             TableName: process.env.DYNAMODB_TABLE,
             Item: {
@@ -17,9 +31,8 @@ exports.lambdaHandler = async (event, context) => {
                 subscribed: true,
             }
         };
-        
+        const result = await docClient.put(params).promise();
         try {
-            const result = await docClient.put(params).promise();
             response = {
                 'statusCode': 200,
                 'headers': {

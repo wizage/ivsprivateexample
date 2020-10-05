@@ -11,14 +11,14 @@ exports.lambdaHandler = async (event) => {
         && !event.queryStringParameters.channelId ) {
         const error = {
             statusCode: 403,
-            body: 'Not Authorized',
+            body: 'Missing channelId/userId',
             headers: {
                 'Access-Control-Allow-Origin':'*',
             },
         };
         return error;
   }
-  const userSubscription = await checkUser(event);
+  const userSubscription = await checkUser(event.queryStringParameters.userId, event.queryStringParameters.channelId);
   if (!userSubscription) {
     const error = {
       statusCode: 403,
@@ -69,14 +69,15 @@ async function checkUser(userId, channelId) {
   const params = {
     TableName:process.env.DYNAMODB_TABLE,
     Key: {
-        user_id: userId,
-        channel_id: channelId,
+        'user_id': userId,
+        'channel_id': channelId,
     },
   };
   try {
-    const result = docClient.get(params).promise();
-    return result.subscribed;
+    const result = await docClient.get(params).promise();
+    return result.Item.subscribed;
   } catch (e) {
+      console.log('test',e);
       return false;
   }
 }

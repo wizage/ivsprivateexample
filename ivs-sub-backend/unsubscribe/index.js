@@ -3,6 +3,19 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 let response;
 
 exports.lambdaHandler = async (event, context) => {
+    if (event.httpMethod === 'OPTIONS') {
+        const optionsResponse = {
+            'statusCode': 200,
+            'headers': {
+                'Access-Control-Allow-Origin':'*',
+                'Access-Control-Allow-Methods':'OPTIONS,POST',
+                'Access-Control-Allow-Headers':'*',
+            },
+            'body': JSON.stringify({ statusCode: 200}, null, 2),
+        };
+        return optionsResponse;
+    }
+
     if ( event.queryStringParameters 
         && event.queryStringParameters.userId 
         && event.queryStringParameters.channelId ) {

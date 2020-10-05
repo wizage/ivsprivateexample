@@ -6,6 +6,11 @@ Description: >
 Globals:
   Function:
     Timeout: 3
+  Api:
+    Cors:
+      AllowMethods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+      AllowHeaders: "'Content-Type,X-Amz-Date,X-Amz-Security-Token,Authorization,X-Api-Key,X-Requested-With,Accept,Access-Control-Allow-Methods,Access-Control-Allow-Origin,Access-Control-Allow-Headers'"
+      AllowOrigin: "'*'"
 
 Parameters:
   SecretArn:
@@ -18,6 +23,7 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
+      
   SubscriptionTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -104,6 +110,12 @@ Resources:
             Path: /subscribe
             Method: post
             RestApiId: !Ref IVSBackend
+        Options:
+          Type: Api
+          Properties:
+            RestApiId: !Ref IVSBackend
+            Path: /subscribe
+            Method: options
   UnsubscribeFunction:
     Type: AWS::Serverless::Function  
     Properties:
@@ -129,6 +141,12 @@ Resources:
             Path: /unsubscribe
             Method: post
             RestApiId: !Ref IVSBackend
+        Options:
+          Type: Api
+          Properties:
+            RestApiId: !Ref IVSBackend
+            Path: /unsubscribe
+            Method: options
   TokenGenerator:
     Type: AWS::Serverless::Function
     Properties:
