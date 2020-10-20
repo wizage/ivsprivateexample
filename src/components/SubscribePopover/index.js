@@ -23,19 +23,19 @@ export default class SubscribePopover extends React.Component {
 
   subscribe = (item) => {
     const apiName = 'SubscriptionEndpoint';
+    const { showVideo, hideSubscribe } = this.props;
     const path = 'subscribe';
     const postDict = {
       body: {
-        userId:'12345', 
+        userId:'123456', 
         channelId:item.id
       }
     }
     API.post(apiName, path, postDict)
     .then(response => {
       // Add your code here
-      this.setState({
-          items: response,
-      });
+      hideSubscribe();
+      showVideo(item);
       console.log(response);
     })
     .catch(error => {

@@ -16,10 +16,11 @@ exports.lambdaHandler = async (event, context) => {
         return optionsResponse;
     }
 
-    if ( event.queryStringParameters 
-        && event.queryStringParameters.userId 
-        && event.queryStringParameters.channelId ) {
-        const {userId, channelId} = event.queryStringParameters;
+    const parameters = JSON.parse(event.body);
+    if ( parameters 
+        && parameters.userId 
+        && parameters.channelId ) {
+        const {userId, channelId} = parameters;
         var params = {
             TableName: process.env.DYNAMODB_TABLE,
             Key: {
@@ -41,7 +42,7 @@ exports.lambdaHandler = async (event, context) => {
                 'headers': {
                     'Access-Control-Allow-Origin':'*',
                 },
-                'body': JSON.stringify(result, null, 2),
+                'body': JSON.stringify({unsubscribed:true}, null, 2),
             }
         } catch (err) {
             response = {

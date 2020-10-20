@@ -40,7 +40,7 @@ class GridView extends Component {
     const params = {
       headers: {}, // OPTIONAL
       queryStringParameters: {
-        userId: '12345',
+        userId: '123456',
         channelId: item.id,
       },
     };
@@ -62,7 +62,6 @@ class GridView extends Component {
       });
       console.log(error.response);
     });
-    
   }
 
   hideSubscribe = () => {
@@ -101,6 +100,7 @@ class GridView extends Component {
             choosenItem={choosenItem}
             displayingSubscribe={displayingSubscribe}
             hideSubscribe={this.hideSubscribe}
+            showVideo={this.displayStream}
           />
           <CardDeck>
             {itemHTML}

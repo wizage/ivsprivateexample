@@ -18,7 +18,6 @@ exports.lambdaHandler = async (event, context) => {
     
     // CHECK PAYMENTS OR VALIDATE PAYMENT BEFORE SUBSCRIBE
     const parameters = JSON.parse(event.body);
-    console.log(parameters, event.body);
     if ( parameters 
         && parameters.userId 
         && parameters.channelId ) {

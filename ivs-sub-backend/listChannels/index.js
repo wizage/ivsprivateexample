@@ -15,6 +15,7 @@ exports.lambdaHandler = async (event, context) => {
             const filteredChannel = {};
             filteredChannel.name = channel.name;
             filteredChannel.id = channel.arn.split('channel/')[1];
+            filteredChannel.authorized = channel.authorized; 
             return filteredChannel;
         });
         response = {
